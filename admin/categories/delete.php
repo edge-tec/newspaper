@@ -1,17 +1,16 @@
 <?php
-require_once '../../config/database.php';
-require_once '../../config/functions.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/functions.php';
 
 requireAdminOrEditor();
 
 $id = $_GET['id'] ?? null;
 if ($id) {
-    // Optionally check if posts are associated with this category and handle them (our DB has CASCADE ON DELETE)
     $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
     if ($stmt->execute([$id])) {
-        $_SESSION['success'] = 'Category deleted successfully.';
+        setFlash('ক্যাটাগরি সফলভাবে ডিলিট হয়েছে।', 'success');
     } else {
-        $_SESSION['error'] = 'Failed to delete category.';
+        setFlash('ক্যাটাগরি ডিলিট করা সম্ভব হয়নি।', 'danger');
     }
 }
 

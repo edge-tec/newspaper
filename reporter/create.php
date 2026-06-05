@@ -1,125 +1,117 @@
 <?php
-require_once 'includes/header.php';
-require_once 'includes/sidebar.php';
+require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/sidebar.php';
 
+$userId = $_SESSION['user_id'];
 $categories = $pdo->query("SELECT id, name FROM categories WHERE status = 'active' ORDER BY name ASC")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $_SESSION['error'] = 'Invalid CSRF token.';
-    } else {
-        $title             = trim($_POST['title'] ?? '');
-        $category_id       = $_POST['category_id'] ?? '';
-        $short_description = trim($_POST['short_description'] ?? '');
-        $content           = $_POST['content'] ?? '';
-        $action            = $_POST['action'] ?? 'draft'; // 'draft' or 'submit'
-        $slug              = createSlug($title);
-        $imagePath         = null;
+    if (verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $title      = trim($_POST['title'] ?? '');
+        $categoryId = $_POST['category_id'] ?? null;
+        $shortDesc  = trim($_POST['short_description'] ?? '');
+        $content    = trim($_POST['content'] ?? '');
+        $action     = $_POST['action'] ?? 'draft'; // 'draft' or 'submit'
+        
+        $status = ($action === 'submit') ? 'pending' : 'draft';
 
-        if (empty($title) || empty($category_id) || empty($content)) {
-            $_SESSION['error'] = 'Title, category, and content are required.';
-        } else {
-            // Ensure unique slug
-            $stmt = $pdo->prepare("SELECT id FROM posts WHERE slug = ?");
-            $stmt->execute([$slug]);
-            if ($stmt->fetch()) {
-                $slug .= '-' . bin2hex(random_bytes(3));
-            }
+        if (!empty($title) && !empty($categoryId) && !empty($content)) {
+            // Generate basic slug
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+            if (empty($slug)) $slug = 'news-' . time();
+            $slug = $slug . '-' . time(); // ensure uniqueness
 
-            // Handle image upload
-            if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
-                $uploadDir = __DIR__ . '/../assets/uploads/';
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-
-                $fileName   = time() . '_' . preg_replace("/[^a-zA-Z0-9.\-_]/", "", basename($_FILES['image']['name']));
-                $targetFile = $uploadDir . $fileName;
-                $ext        = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
-
-                if (in_array($ext, ['jpg','jpeg','png','gif','webp'])) {
-                    if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-                        $imagePath = 'assets/uploads/' . $fileName;
+            // Image Upload
+            $imagePath = null;
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+                if (in_array(strtolower($ext), $allowed)) {
+                    $filename = uniqid() . '.' . $ext;
+                    $uploadDir = __DIR__ . '/../../assets/uploads/';
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+                    if (move_uploaded_处_file($_FILES['image']['tmp_name'], $uploadDir . $filename)) {
+                        $imagePath = 'assets/uploads/' . $filename;
                     }
-                } else {
-                    $_SESSION['error'] = 'Only JPG, PNG, GIF, WEBP images are allowed.';
                 }
             }
 
-            if (!isset($_SESSION['error'])) {
-                $status = ($action === 'submit') ? 'pending' : 'draft';
-                $stmt = $pdo->prepare("INSERT INTO posts (title, slug, short_description, content, image, category_id, author_id, status) VALUES (?,?,?,?,?,?,?,?)");
-                if ($stmt->execute([$title, $slug, $short_description, $content, $imagePath, $category_id, $_SESSION['user_id'], $status])) {
-                    $_SESSION['success'] = ($status === 'pending') ? 'Article submitted for review!' : 'Draft saved successfully.';
-                    redirect('/reporter/articles.php?status=' . $status);
-                } else {
-                    $_SESSION['error'] = 'Failed to save article.';
-                }
+            $stmt = $pdo->prepare("INSERT INTO posts (title, slug, short_description, content, image, category_id, author_id, status) VALUES (?,?,?,?,?,?,?,?)");
+            if ($stmt->execute([$title, $slug, $shortDesc, $content, $imagePath, $categoryId, $userId, $status])) {
+                $msg = ($status === 'pending') ? "খবরটি পর্যালোচনার জন্য পাঠানো হয়েছে।" : "খবরটি খসড়া হিসেবে সংরক্ষিত হয়েছে।";
+                setFlash($msg, 'success');
+                redirect('/reporter/articles.php');
+            } else {
+                setFlash("খবর সংরক্ষণ করতে সমস্যা হয়েছে।", 'danger');
             }
+        } else {
+            setFlash("শিরোনাম, ক্যাটাগরি এবং বিস্তারিত খবর আবশ্যক।", 'warning');
         }
     }
 }
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">Write New Article</h1>
-</div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pb-5">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+        <h1 class="h3 fw-bold">নতুন খবর লিখুন</h1>
+        <a href="articles.php" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> ফিরে যান</a>
+    </div>
 
-<?php flashMessages(); ?>
+    <?php displayFlash(); ?>
 
-<form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="<?php echo h(generateCsrfToken()); ?>">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo h(generateCsrfToken()); ?>">
+                
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">শিরোনাম <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control form-control-lg fs-5" required placeholder="খবরের শিরোনাম লিখুন...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">সারসংক্ষেপ</label>
+                            <textarea name="short_description" class="form-control" rows="2" placeholder="খবরের ছোট একটি সারসংক্ষেপ..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">বিস্তারিত খবর <span class="text-danger">*</span></label>
+                            <textarea name="content" class="form-control" rows="12" required placeholder="খবরের বিস্তারিত অংশ এখানে লিখুন..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="bg-light p-3 rounded mb-3">
+                            <label class="form-label fw-semibold">ক্যাটাগরি <span class="text-danger">*</span></label>
+                            <select name="category_id" class="form-select" required>
+                                <option value="">ক্যাটাগরি নির্বাচন করুন</option>
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?php echo $cat['id']; ?>"><?php echo h($cat['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="bg-light p-3 rounded mb-4">
+                            <label class="form-label fw-semibold">ছবি</label>
+                            <input type="file" name="image" class="form-control mb-2" accept="image/jpeg, image/png, image/webp">
+                            <small class="text-muted d-block">অনুমোদিত: JPG, PNG, WEBP</small>
+                        </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="mb-3">
-                <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-lg" id="title" name="title" placeholder="Enter article title..." required>
-            </div>
-            <div class="mb-3">
-                <label for="short_description" class="form-label">Short Description</label>
-                <textarea class="form-control" id="short_description" name="short_description" rows="2" placeholder="Brief summary..."></textarea>
-            </div>
-            <div class="mb-3">
-                <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="content" name="content" rows="18" placeholder="Write your article content here..." required></textarea>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white fw-semibold">Publish</div>
-                <div class="card-body">
-                    <p class="text-muted small mb-3">Save as draft or submit for editor/admin review before publication.</p>
-                    <div class="d-grid gap-2">
-                        <button type="submit" name="action" value="draft" class="btn btn-outline-secondary">
-                            <i class="bi bi-file-earmark me-1"></i> Save Draft
-                        </button>
-                        <button type="submit" name="action" value="submit" class="btn btn-danger">
-                            <i class="bi bi-send me-1"></i> Submit for Review
-                        </button>
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="action" value="submit" class="btn btn-danger btn-lg fw-bold">
+                                <i class="bi bi-send"></i> পর্যালোচনার জন্য পাঠান
+                            </button>
+                            <button type="submit" name="action" value="draft" class="btn btn-outline-secondary fw-bold">
+                                <i class="bi bi-save"></i> খসড়া হিসেবে সেভ করুন
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white fw-semibold">Category <span class="text-danger">*</span></div>
-                <div class="card-body">
-                    <select class="form-select" name="category_id" required>
-                        <option value="">Select category...</option>
-                        <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo $cat['id']; ?>"><?php echo h($cat['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white fw-semibold">Featured Image</div>
-                <div class="card-body">
-                    <input type="file" class="form-control" name="image" accept="image/*">
-                </div>
-            </div>
+            </form>
         </div>
     </div>
-</form>
+</main>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

@@ -3,7 +3,7 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/functions.php';
 
 $query = trim($_GET['q'] ?? '');
-$pageTitle = 'Search Results for "' . h($query) . '"';
+$pageTitle = '"' . h($query) . '" এর জন্য অনুসন্ধানের ফলাফল';
 
 $page    = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 10;
@@ -47,11 +47,11 @@ require_once __DIR__ . '/includes/header.php';
     <div class="row">
         <div class="col-lg-8">
             <h2 class="fw-bold text-uppercase pb-2 mb-4 border-bottom border-danger border-2">
-                Search: <?php echo h($query); ?>
+                অনুসন্ধান: <?php echo h($query); ?>
             </h2>
 
             <?php if (!empty($query) && count($posts) > 0): ?>
-                <p class="text-muted mb-4">Found <?php echo $total; ?> internal results</p>
+                <p class="text-muted mb-4"><?php echo en2bn($total); ?> টি খবর পাওয়া গেছে</p>
                 <?php foreach ($posts as $post): ?>
                 <div class="row g-0 mb-4 pb-4 border-bottom">
                     <div class="col-4 col-md-3">
@@ -69,18 +69,18 @@ require_once __DIR__ . '/includes/header.php';
 
                 <?php if ($totalPages > 1): ?>
                 <nav><ul class="pagination justify-content-center">
-                    <li class="page-item <?php echo $page<=1?'disabled':''; ?>"><a class="page-link" href="?q=<?php echo urlencode($query); ?>&page=<?php echo $page-1; ?>">Prev</a></li>
+                    <li class="page-item <?php echo $page<=1?'disabled':''; ?>"><a class="page-link" href="?q=<?php echo urlencode($query); ?>&page=<?php echo $page-1; ?>">পূর্ববর্তী</a></li>
                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <li class="page-item <?php echo $page==$i?'active':''; ?>"><a class="page-link" href="?q=<?php echo urlencode($query); ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                    <li class="page-item <?php echo $page==$i?'active':''; ?>"><a class="page-link" href="?q=<?php echo urlencode($query); ?>&page=<?php echo $i; ?>"><?php echo en2bn($i); ?></a></li>
                     <?php endfor; ?>
-                    <li class="page-item <?php echo $page>=$totalPages?'disabled':''; ?>"><a class="page-link" href="?q=<?php echo urlencode($query); ?>&page=<?php echo $page+1; ?>">Next</a></li>
+                    <li class="page-item <?php echo $page>=$totalPages?'disabled':''; ?>"><a class="page-link" href="?q=<?php echo urlencode($query); ?>&page=<?php echo $page+1; ?>">পরবর্তী</a></li>
                 </ul></nav>
                 <?php endif; ?>
 
             <?php elseif (!empty($query)): ?>
-                <p class="text-muted">No internal articles found for "<?php echo h($query); ?>".</p>
+                <p class="text-muted">"<?php echo h($query); ?>" এর জন্য কোনো খবর পাওয়া যায়নি।</p>
             <?php else: ?>
-                <p class="text-muted">Enter a search term above.</p>
+                <p class="text-muted">উপরে সার্চ বক্সে কিছু লিখে অনুসন্ধান করুন।</p>
             <?php endif; ?>
         </div>
 
@@ -89,7 +89,7 @@ require_once __DIR__ . '/includes/header.php';
             <?php if (count($externalResults) > 0): ?>
             <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
                 <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-secondary border-2" style="font-size:.9rem;">
-                    <i class="bi bi-globe2 me-1"></i> External Results
+                    <i class="bi bi-globe2 me-1"></i> অন্যান্য মাধ্যম থেকে
                 </h5>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($externalResults as $er): ?>
@@ -103,7 +103,7 @@ require_once __DIR__ . '/includes/header.php';
             <?php endif; ?>
 
             <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
-                <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:.9rem;">Categories</h5>
+                <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:.9rem;">ক্যাটাগরি</h5>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($navCategories as $cat): ?>
                     <li class="mb-2"><a href="<?php echo SITE_URL; ?>/category/<?php echo h($cat['slug']); ?>" class="text-dark text-decoration-none fw-semibold"><i class="bi bi-chevron-right text-danger small"></i> <?php echo h($cat['name']); ?></a></li>

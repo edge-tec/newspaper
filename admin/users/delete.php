@@ -1,9 +1,9 @@
 <?php
-require_once '../../config/database.php';
-require_once '../../config/functions.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/functions.php';
 
 if ($_SESSION['user_role'] !== 'admin') {
-    $_SESSION['error'] = 'Access denied.';
+    setFlash('অ্যাক্সেস ডিনাইড।', 'danger');
     redirect('/admin/index.php');
 }
 
@@ -12,12 +12,12 @@ $id = $_GET['id'] ?? null;
 if ($id && $id != $_SESSION['user_id']) {
     $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
     if ($stmt->execute([$id])) {
-        $_SESSION['success'] = 'User deleted successfully.';
+        setFlash('ব্যবহারকারী সফলভাবে ডিলিট হয়েছে।', 'success');
     } else {
-        $_SESSION['error'] = 'Failed to delete user.';
+        setFlash('ব্যবহারকারী ডিলিট করা সম্ভব হয়নি।', 'danger');
     }
 } else {
-    $_SESSION['error'] = 'Cannot delete your own account.';
+    setFlash('আপনি আপনার নিজের একাউন্ট ডিলিট করতে পারবেন না।', 'danger');
 }
 
 redirect('/admin/users/index.php');

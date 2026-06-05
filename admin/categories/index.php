@@ -1,57 +1,74 @@
 <?php
-require_once '../includes/header.php';
-require_once '../includes/sidebar.php';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/sidebar.php';
+
 requireAdminOrEditor();
 
-$categories = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
+$stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
+$categories = $stmt->fetchAll();
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Categories</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="create.php" class="btn btn-sm btn-outline-primary">Add New Category</a>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pb-5">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+        <h1 class="h3 fw-bold">ক্যাটাগরি সমূহ</h1>
+        <a href="create.php" class="btn btn-danger"><i class="bi bi-plus-lg"></i> নতুন ক্যাটাগরি</a>
     </div>
-</div>
 
-<?php if (isset($_SESSION['success'])): ?>
-    <div class="alert alert-success"><?php echo h($_SESSION['success']); unset($_SESSION['success']); ?></div>
-<?php endif; ?>
-<?php if (isset($_SESSION['error'])): ?>
-    <div class="alert alert-danger"><?php echo h($_SESSION['error']); unset($_SESSION['error']); ?></div>
-<?php endif; ?>
+    <?php displayFlash(); ?>
+    <?php if (isset($_SESSION['success'])) { echo "<div class='alert alert-success'>".h($_SESSION['success'])."</div>"; unset($_SESSION['success']); } ?>
+    <?php if (isset($_SESSION['error'])) { echo "<div class='alert alert-danger'>".h($_SESSION['error'])."</div>"; unset($_SESSION['error']); } ?>
 
-<div class="table-responsive">
-    <table class="table table-striped table-sm">
-        <thead>
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Name</th>
-                <th scope="col">Slug</th>
-                <th scope="col">Status</th>
-                <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($categories as $category): ?>
-            <tr>
-                <td><?php echo $category['id']; ?></td>
-                <td><?php echo h($category['name']); ?></td>
-                <td><?php echo h($category['slug']); ?></td>
-                <td>
-                    <?php if ($category['status'] == 'active'): ?>
-                        <span class="badge bg-success">Active</span>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4">নাম</th>
+                        <th>স্লাগ (Slug)</th>
+                        <th>অবস্থা</th>
+                        <th class="text-end px-4">অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (count($categories) > 0): ?>
+                        <?php foreach ($categories as $category): ?>
+                        <tr>
+                            <td class="px-4 fw-medium"><?php echo h($category['name']); ?></td>
+                            <td class="text-muted"><?php echo h($category['slug']); ?></td>
+                            <td><?php echo getStatusBadge($category['status']); ?></td>
+                            <td class="text-end px-4">
+                                <a href="edit.php?id=<?php echo $category['id']; ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('<?php echo SITE_URL; ?>/admin/categories/delete.php?id=<?php echo $category['id']; ?>')"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
                     <?php else: ?>
-                        <span class="badge bg-secondary">Inactive</span>
+                        <tr><td colspan="4" class="text-center py-4 text-muted">কোনো ক্যাটাগরি পাওয়া যায়নি।</td></tr>
                     <?php endif; ?>
-                </td>
-                <td>
-                    <a href="edit.php?id=<?php echo $category['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
-                    <a href="delete.php?id=<?php echo $category['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this category?');">Delete</a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
 
-<?php require_once '../includes/footer.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmDelete(url) {
+    Swal.fire({
+        title: 'আপনি কি নিশ্চিত?',
+        text: "ডিলিট করার পর এটি আর ফিরে পাওয়া যাবে না!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'হ্যাঁ, ডিলিট করুন!',
+        cancelButtonText: 'বাতিল'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    })
+}
+</script>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

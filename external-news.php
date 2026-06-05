@@ -11,7 +11,7 @@ $article = $stmt->fetch();
 
 if (!$article) {
     header("HTTP/1.0 404 Not Found");
-    echo "Article not found.";
+    echo "খবরটি পাওয়া যায়নি।";
     exit;
 }
 
@@ -24,6 +24,12 @@ require_once __DIR__ . '/includes/header.php';
 $relatedStmt = $pdo->prepare("SELECT id, title, source_name, published_at FROM aggregated_news WHERE source_name = ? AND id != ? ORDER BY published_at DESC LIMIT 5");
 $relatedStmt->execute([$article['source_name'], $article['id']]);
 $relatedArticles = $relatedStmt->fetchAll();
+
+// Format date
+$bnDays = ['Sunday'=>'রবিবার', 'Monday'=>'সোমবার', 'Tuesday'=>'মঙ্গলবার', 'Wednesday'=>'বুধবার', 'Thursday'=>'বৃহস্পতিবার', 'Friday'=>'শুক্রবার', 'Saturday'=>'শনিবার'];
+$bnMonths = ['January'=>'জানুয়ারি', 'February'=>'ফেব্রুয়ারি', 'March'=>'মার্চ', 'April'=>'এপ্রিল', 'May'=>'মে', 'June'=>'জুন', 'July'=>'জুলাই', 'August'=>'আগস্ট', 'September'=>'সেপ্টেম্বর', 'October'=>'অক্টোবর', 'November'=>'নভেম্বর', 'December'=>'ডিসেম্বর'];
+$pubDate = strtotime($article['published_at']);
+$articleDateBn = en2bn(date('j', $pubDate)) . ' ' . $bnMonths[date('F', $pubDate)] . ' ' . en2bn(date('Y, g:i a', $pubDate));
 ?>
 
 <div class="container my-5">
@@ -31,11 +37,11 @@ $relatedArticles = $relatedStmt->fetchAll();
         <div class="col-lg-8">
             <nav aria-label="breadcrumb">
               <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?php echo SITE_URL; ?>" class="text-danger text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo SITE_URL; ?>" class="text-danger text-decoration-none">হোম</a></li>
                 <?php if ($article['category_name']): ?>
                 <li class="breadcrumb-item text-muted"><?php echo h($article['category_name']); ?></li>
                 <?php endif; ?>
-                <li class="breadcrumb-item active">External Source</li>
+                <li class="breadcrumb-item active">বাহ্যিক উৎস</li>
               </ol>
             </nav>
 
@@ -43,8 +49,8 @@ $relatedArticles = $relatedStmt->fetchAll();
             <div class="alert alert-light border d-flex align-items-center mb-4">
                 <i class="bi bi-globe2 text-secondary fs-4 me-3"></i>
                 <div>
-                    <strong>External Source:</strong> <?php echo h($article['source_name']); ?>
-                    <br><small class="text-muted">This article is sourced externally. Only a summary is displayed below.</small>
+                    <strong>উৎস:</strong> <?php echo h($article['source_name']); ?>
+                    <br><small class="text-muted">এই খবরটি অন্য একটি ওয়েবসাইট থেকে সংগ্রহ করা হয়েছে। নিচে শুধুমাত্র খবরের সারসংক্ষেপ দেওয়া হলো।</small>
                 </div>
             </div>
 
@@ -53,7 +59,7 @@ $relatedArticles = $relatedStmt->fetchAll();
             <div class="text-muted mb-4">
                 <span class="me-3"><i class="bi bi-newspaper me-1"></i> <?php echo h($article['source_name']); ?></span>
                 <?php if ($article['published_at']): ?>
-                <span><i class="bi bi-calendar3 me-1"></i> <?php echo date('F j, Y, g:i a', strtotime($article['published_at'])); ?></span>
+                <span><i class="bi bi-calendar3 me-1"></i> <?php echo str_replace(['am', 'pm'], ['এএম', 'পিএম'], $articleDateBn); ?></span>
                 <?php endif; ?>
             </div>
 
@@ -68,23 +74,23 @@ $relatedArticles = $relatedStmt->fetchAll();
 
             <!-- Read Full Article Button -->
             <div class="bg-light rounded-3 p-4 text-center mb-4">
-                <p class="mb-3 text-muted">To read the full article, visit the original source:</p>
+                <p class="mb-3 text-muted">খবরটির বিস্তারিত পড়তে মূল ওয়েবসাইটে যান:</p>
                 <a href="<?php echo h($article['original_url']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-danger btn-lg">
-                    <i class="bi bi-box-arrow-up-right me-2"></i> Read Full Article on <?php echo h($article['source_name']); ?>
+                    <i class="bi bi-box-arrow-up-right me-2"></i> <?php echo h($article['source_name']); ?> এ বিস্তারিত পড়ুন
                 </a>
             </div>
 
             <!-- Share -->
             <div class="d-flex gap-2 mb-4">
-                <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($article['original_url']); ?>" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-facebook me-1"></i> Share</a>
-                <a href="https://api.whatsapp.com/send?text=<?php echo urlencode($article['title'] . ' ' . $article['original_url']); ?>" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-whatsapp me-1"></i> WhatsApp</a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($article['original_url']); ?>" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-facebook me-1"></i> শেয়ার করুন</a>
+                <a href="https://api.whatsapp.com/send?text=<?php echo urlencode($article['title'] . ' ' . $article['original_url']); ?>" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-whatsapp me-1"></i> হোয়াটসঅ্যাপ</a>
             </div>
         </div>
 
         <!-- Sidebar -->
         <div class="col-lg-4">
             <div class="bg-white rounded-3 shadow-sm p-4">
-                <h5 class="fw-bold mb-3 border-bottom border-danger border-2 pb-2 text-uppercase" style="font-size:.9rem;">More from <?php echo h($article['source_name']); ?></h5>
+                <h5 class="fw-bold mb-3 border-bottom border-danger border-2 pb-2 text-uppercase" style="font-size:.9rem;"><?php echo h($article['source_name']); ?> থেকে আরও খবর</h5>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($relatedArticles as $ra): ?>
                     <li class="mb-3 pb-3 border-bottom">
@@ -95,7 +101,7 @@ $relatedArticles = $relatedStmt->fetchAll();
                     </li>
                     <?php endforeach; ?>
                     <?php if (count($relatedArticles) === 0): ?>
-                        <li class="text-muted small">No other articles from this source.</li>
+                        <li class="text-muted small">এই উৎসের আর কোনো খবর নেই।</li>
                     <?php endif; ?>
                 </ul>
             </div>

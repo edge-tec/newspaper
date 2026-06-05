@@ -1,44 +1,82 @@
 <?php
-require_once '../includes/header.php';
-require_once '../includes/sidebar.php';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/sidebar.php';
+
 requireAdmin();
 
-$feeds = $pdo->query("
-    SELECT r.*, c.name as category_name
-    FROM rss_feeds r LEFT JOIN categories c ON r.category_id = c.id
-    ORDER BY r.source_name ASC
-")->fetchAll();
+$stmt = $pdo->query("SELECT r.*, c.name as category_name FROM rss_sources r LEFT JOIN categories c ON r.category_id = c.id ORDER BY r.source_name ASC");
+$sources = $stmt->fetchAll();
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">RSS Feed Sources</h1>
-    <a href="create.php" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i> Add Feed</a>
-</div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pb-5">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+        <h1 class="h3 fw-bold">RSS সংবাদ উৎস</h1>
+        <div>
+            <a href="create.php" class="btn btn-danger"><i class="bi bi-plus-lg"></i> নতুন উৎস যুক্ত করুন</a>
+        </div>
+    </div>
 
-<?php flashMessages(); ?>
+    <?php displayFlash(); ?>
+    <?php if (isset($_SESSION['success'])) { echo "<div class='alert alert-success'>".h($_SESSION['success'])."</div>"; unset($_SESSION['success']); } ?>
+    <?php if (isset($_SESSION['error'])) { echo "<div class='alert alert-danger'>".h($_SESSION['error'])."</div>"; unset($_SESSION['error']); } ?>
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light"><tr><th>Source</th><th>Feed URL</th><th>Category</th><th>Status</th><th>Last Fetched</th><th>Actions</th></tr></thead>
-        <tbody>
-        <?php if (count($feeds) === 0): ?>
-            <tr><td colspan="6" class="text-center text-muted py-4">No RSS feeds configured yet.</td></tr>
-        <?php endif; ?>
-        <?php foreach ($feeds as $feed): ?>
-        <tr>
-            <td class="fw-semibold"><?php echo h($feed['source_name']); ?></td>
-            <td class="small text-break" style="max-width:250px;"><?php echo h($feed['feed_url']); ?></td>
-            <td><?php echo h($feed['category_name'] ?? '—'); ?></td>
-            <td><?php echo getStatusBadge($feed['status']); ?></td>
-            <td class="small text-muted"><?php echo $feed['last_fetched'] ? timeAgo($feed['last_fetched']) : 'Never'; ?></td>
-            <td>
-                <a href="edit.php?id=<?php echo $feed['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
-                <a href="delete.php?id=<?php echo $feed['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this feed?');">Delete</a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4">উৎস (Source)</th>
+                        <th>ক্যাটাগরি</th>
+                        <th>RSS ফিড ইউআরএল (URL)</th>
+                        <th>অবস্থা</th>
+                        <th class="text-end px-4">অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (count($sources) > 0): ?>
+                        <?php foreach ($sources as $source): ?>
+                        <tr>
+                            <td class="px-4 fw-medium"><?php echo h($source['source_name']); ?></td>
+                            <td><span class="badge bg-secondary bg-opacity-10 text-secondary border"><?php echo h($source['category_name'] ?? 'None'); ?></span></td>
+                            <td>
+                                <a href="<?php echo h($source['feed_url']); ?>" target="_blank" class="text-primary text-decoration-none small" style="word-break: break-all;">
+                                    <?php echo h($source['feed_url']); ?>
+                                </a>
+                            </td>
+                            <td><?php echo getStatusBadge($source['status']); ?></td>
+                            <td class="text-end px-4">
+                                <a href="edit.php?id=<?php echo $source['id']; ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete('<?php echo SITE_URL; ?>/admin/rss/delete.php?id=<?php echo $source['id']; ?>')"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" class="text-center py-4 text-muted">কোনো RSS উৎস পাওয়া যায়নি।</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
 
-<?php require_once '../includes/footer.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmDelete(url) {
+    Swal.fire({
+        title: 'আপনি কি নিশ্চিত?',
+        text: "ডিলিট করার পর এটি আর ফিরে পাওয়া যাবে না!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'হ্যাঁ, ডিলিট করুন!',
+        cancelButtonText: 'বাতিল'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    })
+}
+</script>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

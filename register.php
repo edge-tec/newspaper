@@ -2,99 +2,77 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/functions.php';
 
-if (isLoggedIn()) {
-    if (isReporter()) { redirect('/reporter/index.php'); }
-    else { redirect('/admin/index.php'); }
-}
-
-$error = '';
+if (isLoggedIn()) redirect('/admin/index.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $error = 'Invalid CSRF token.';
-    } else {
+    if (verifyCsrfToken($_POST['csrf_token'] ?? '')) {
         $name     = trim($_POST['name'] ?? '');
         $email    = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        $confirm  = $_POST['confirm_password'] ?? '';
 
-        if (empty($name) || empty($email) || empty($password)) {
-            $error = 'All fields are required.';
-        } elseif (strlen($password) < 6) {
-            $error = 'Password must be at least 6 characters.';
-        } elseif ($password !== $confirm) {
-            $error = 'Passwords do not match.';
-        } else {
+        if (!empty($name) && !empty($email) && !empty($password)) {
+            // Check if email exists
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
-                $error = 'An account with this email already exists.';
+                setFlash('এই ইমেইল দিয়ে ইতিমধ্যেই একটি একাউন্ট রয়েছে।', 'danger');
             } else {
-                $hashed = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, status) VALUES (?, ?, ?, 'reporter', 'active')");
-                if ($stmt->execute([$name, $email, $hashed])) {
-                    $_SESSION['success'] = 'Registration successful! Please log in.';
-                    redirect('/admin/login.php');
-                } else {
-                    $error = 'Something went wrong. Please try again.';
-                }
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'reporter')")->execute([$name, $email, $hash]);
+                setFlash('রেজিস্ট্রেশন সফল হয়েছে! এখন লগইন করুন।', 'success');
+                redirect('/admin/login.php');
             }
+        } else {
+            setFlash('সবগুলো ঘর পূরণ করা আবশ্যক।', 'danger');
         }
     }
 }
+
+$pageTitle = 'রিপোর্টার রেজিস্ট্রেশন';
+require_once __DIR__ . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register as Reporter — <?php echo SITE_NAME; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo SITE_URL; ?>/assets/css/style.css">
-</head>
-<body class="bg-light">
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <h2 class="text-center mb-1 fw-bold"><span class="text-danger">M</span>odern<span class="text-danger">N</span>ews</h2>
-                        <p class="text-center text-muted mb-4">Create a Reporter Account</p>
 
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?php echo h($error); ?></div>
-                        <?php endif; ?>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-badge fs-1 text-danger"></i>
+                        <h2 class="fw-bold mt-2" style="font-family:'Playfair Display',serif;">রিপোর্টার হোন</h2>
+                        <p class="text-muted">আমাদের নিউজপোর্টালে খবর লিখতে রেজিস্ট্রেশন করুন</p>
+                    </div>
 
-                        <form method="POST" action="">
-                            <input type="hidden" name="csrf_token" value="<?php echo h(generateCsrfToken()); ?>">
+                    <?php displayFlash(); ?>
 
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="name" name="name"
-                                       value="<?php echo h($_POST['name'] ?? ''); ?>" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                       value="<?php echo h($_POST['email'] ?? ''); ?>" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="confirm_password" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                            </div>
-                            <button type="submit" class="btn btn-danger w-100">Register</button>
-                        </form>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo h(generateCsrfToken()); ?>">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">আপনার নাম</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
 
-                        <p class="text-center mt-3 mb-0">Already have an account? <a href="<?php echo SITE_URL; ?>/admin/login.php" class="text-danger">Log In</a></p>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ইমেইল ঠিকানা</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">পাসওয়ার্ড</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 py-2 fw-bold">রেজিস্ট্রেশন করুন</button>
+                    </form>
+
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="text-muted mb-0">আগে থেকেই একাউন্ট আছে? <a href="<?php echo SITE_URL; ?>/admin/login.php" class="text-danger fw-semibold text-decoration-none">লগইন করুন</a></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

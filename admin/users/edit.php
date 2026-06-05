@@ -1,57 +1,51 @@
 <?php
-require_once '../includes/header.php';
-require_once '../includes/sidebar.php';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/sidebar.php';
 
-if ($_SESSION['user_role'] !== 'admin') {
-    $_SESSION['error'] = 'Access denied.';
-    redirect('/admin/index.php');
-}
+requireAdmin();
 
 $id = $_GET['id'] ?? null;
-if (!$id) {
-    redirect('/admin/users/index.php');
-}
+if (!$id) redirect('/admin/users/index.php');
 
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$id]);
 $user = $stmt->fetch();
 
-if (!$user) {
-    redirect('/admin/users/index.php');
-}
+if (!$user) redirect('/admin/users/index.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $_SESSION['error'] = 'Invalid CSRF token.';
+        setFlash('নিরাপত্তা ত্রুটি (Invalid CSRF token)।', 'danger');
     } else {
         $name = trim($_POST['name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         $role = $_POST['role'] ?? 'reporter';
+        $status = $_POST['status'] ?? 'active';
 
         if (empty($name) || empty($email)) {
-            $_SESSION['error'] = 'Name and email are required.';
+            setFlash('নাম ও ইমেইল দেওয়া আবশ্যক।', 'danger');
         } else {
-            // Check if email exists for another user
+            // Check if email belongs to someone else
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
             $stmt->execute([$email, $id]);
             if ($stmt->fetch()) {
-                $_SESSION['error'] = 'Email already exists for another user.';
+                setFlash('এই ইমেইল দিয়ে ইতিমধ্যেই অন্য একটি একাউন্ট আছে।', 'danger');
             } else {
                 if (!empty($password)) {
-                    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $pdo->prepare("UPDATE users SET name=?, email=?, password=?, role=? WHERE id=?");
-                    $params = [$name, $email, $hashedPassword, $role, $id];
+                    $hash = password_hash($password, PASSWORD_DEFAULT);
+                    $stmt = $pdo->prepare("UPDATE users SET name=?, email=?, password=?, role=?, status=? WHERE id=?");
+                    $result = $stmt->execute([$name, $email, $hash, $role, $status, $id]);
                 } else {
-                    $stmt = $pdo->prepare("UPDATE users SET name=?, email=?, role=? WHERE id=?");
-                    $params = [$name, $email, $role, $id];
+                    $stmt = $pdo->prepare("UPDATE users SET name=?, email=?, role=?, status=? WHERE id=?");
+                    $result = $stmt->execute([$name, $email, $role, $status, $id]);
                 }
-                
-                if ($stmt->execute($params)) {
-                    $_SESSION['success'] = 'User updated successfully.';
+
+                if ($result) {
+                    setFlash('ব্যবহারকারীর তথ্য সফলভাবে আপডেট হয়েছে।', 'success');
                     redirect('/admin/users/index.php');
                 } else {
-                    $_SESSION['error'] = 'Failed to update user.';
+                    setFlash('আপডেট করতে সমস্যা হয়েছে।', 'danger');
                 }
             }
         }
@@ -59,50 +53,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Edit User</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="index.php" class="btn btn-sm btn-outline-secondary">Back to Users</a>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pb-5">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+        <h1 class="h3 fw-bold">ব্যবহারকারী সম্পাদনা</h1>
+        <a href="index.php" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> ফিরে যান</a>
     </div>
-</div>
 
-<?php if (isset($_SESSION['error'])): ?>
-    <div class="alert alert-danger"><?php echo h($_SESSION['error']); unset($_SESSION['error']); ?></div>
-<?php endif; ?>
+    <?php displayFlash(); ?>
 
-<div class="row">
-    <div class="col-md-6">
-        <form method="POST" action="">
-            <input type="hidden" name="csrf_token" value="<?php echo h(generateCsrfToken()); ?>">
-            
-            <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" name="name" value="<?php echo h($user['name']); ?>" required>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="">
+                        <input type="hidden" name="csrf_token" value="<?php echo h(generateCsrfToken()); ?>">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">নাম <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" value="<?php echo h($user['name']); ?>" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ইমেইল <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" value="<?php echo h($user['email']); ?>" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">নতুন পাসওয়ার্ড</label>
+                            <input type="password" class="form-control" name="password">
+                            <div class="form-text">পাসওয়ার্ড পরিবর্তন করতে না চাইলে এটি ফাঁকা রাখুন।</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">ভূমিকা (Role)</label>
+                                <select class="form-select" name="role" <?php echo ($id == $_SESSION['user_id']) ? 'disabled' : ''; ?>>
+                                    <option value="reporter" <?php echo $user['role'] === 'reporter' ? 'selected' : ''; ?>>রিপোর্টার</option>
+                                    <option value="editor" <?php echo $user['role'] === 'editor' ? 'selected' : ''; ?>>এডিটর</option>
+                                    <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>অ্যাডমিন</option>
+                                </select>
+                                <?php if($id == $_SESSION['user_id']) echo '<input type="hidden" name="role" value="'.h($user['role']).'">'; ?>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-semibold">অবস্থা</label>
+                                <select class="form-select" name="status" <?php echo ($id == $_SESSION['user_id']) ? 'disabled' : ''; ?>>
+                                    <option value="active" <?php echo $user['status'] === 'active' ? 'selected' : ''; ?>>সক্রিয় (Active)</option>
+                                    <option value="inactive" <?php echo $user['status'] === 'inactive' ? 'selected' : ''; ?>>নিষ্ক্রিয় (Inactive)</option>
+                                </select>
+                                <?php if($id == $_SESSION['user_id']) echo '<input type="hidden" name="status" value="'.h($user['status']).'">'; ?>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">আপডেট করুন</button>
+                    </form>
+                </div>
             </div>
-            
-            <div class="mb-3">
-                <label for="email" class="form-label">Email address</label>
-                <input type="email" class="form-control" id="email" name="email" value="<?php echo h($user['email']); ?>" required>
-            </div>
-            
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password">
-                <small class="text-muted">Leave blank to keep current password.</small>
-            </div>
-            
-            <div class="mb-3">
-                <label for="role" class="form-label">Role</label>
-                <select class="form-select" id="role" name="role">
-                    <option value="reporter" <?php echo $user['role'] === 'reporter' ? 'selected' : ''; ?>>Reporter</option>
-                    <option value="editor" <?php echo $user['role'] === 'editor' ? 'selected' : ''; ?>>Editor</option>
-                    <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
-                </select>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Update User</button>
-        </form>
+        </div>
     </div>
-</div>
+</main>
 
-<?php require_once '../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -52,7 +52,9 @@ $externalNews = $pdo->query("
                     <h2 class="text-white fw-bold mb-1" style="font-family:'Playfair Display',serif;">
                         <a href="<?php echo SITE_URL; ?>/news/<?php echo h($mainHero['slug']); ?>" class="text-white text-decoration-none"><?php echo h($mainHero['title']); ?></a>
                     </h2>
-                    <small class="text-white-50"><?php echo date('F j, Y', strtotime($mainHero['created_at'])); ?></small>
+                    <small class="text-white-50">
+                        <?php echo en2bn(date('j', strtotime($mainHero['created_at']))) . ' ' . $bnMonths[date('F', strtotime($mainHero['created_at']))] . ' ' . en2bn(date('Y', strtotime($mainHero['created_at']))); ?>
+                    </small>
                 </div>
             </div>
         </div>
@@ -97,7 +99,7 @@ $externalNews = $pdo->query("
                     <h3 class="m-0 fw-bold text-uppercase" style="font-size:1.1rem;">
                         <a href="<?php echo SITE_URL; ?>/category/<?php echo h($cat['slug']); ?>" class="text-dark text-decoration-none"><?php echo h($cat['name']); ?></a>
                     </h3>
-                    <a href="<?php echo SITE_URL; ?>/category/<?php echo h($cat['slug']); ?>" class="text-danger text-decoration-none small fw-semibold">View All <i class="bi bi-chevron-right"></i></a>
+                    <a href="<?php echo SITE_URL; ?>/category/<?php echo h($cat['slug']); ?>" class="text-danger text-decoration-none small fw-semibold">সবগুলো দেখুন <i class="bi bi-chevron-right"></i></a>
                 </div>
 
                 <div class="row g-4">
@@ -149,7 +151,7 @@ $externalNews = $pdo->query("
 
             <!-- ═══ LATEST NEWS FEED ═══ -->
             <section>
-                <h3 class="fw-bold text-uppercase pb-2 mb-4 border-bottom border-danger border-2" style="font-size:1.1rem;">Latest News</h3>
+                <h3 class="fw-bold text-uppercase pb-2 mb-4 border-bottom border-danger border-2" style="font-size:1.1rem;">সর্বশেষ খবর</h3>
                 <?php foreach ($latestFeed as $post): ?>
                 <div class="row g-0 mb-4 pb-4 border-bottom">
                     <div class="col-4 col-md-3">
@@ -171,14 +173,14 @@ $externalNews = $pdo->query("
         <div class="col-lg-4">
             <!-- Trending -->
             <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
-                <h4 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:1rem;">Trending Now</h4>
+                <h4 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:1rem;">বর্তমানে জনপ্রিয়</h4>
                 <ul class="list-unstyled mb-0">
                     <?php $rank = 1; foreach ($trendingPosts as $post): ?>
                     <li class="d-flex mb-3 align-items-start">
-                        <span class="text-danger fw-bold fs-4 me-3 opacity-50" style="min-width:28px;"><?php echo str_pad($rank++, 2, '0', STR_PAD_LEFT); ?></span>
+                        <span class="text-danger fw-bold fs-4 me-3 opacity-50" style="min-width:28px;"><?php echo en2bn(str_pad($rank++, 2, '0', STR_PAD_LEFT)); ?></span>
                         <div>
                             <h6 class="fw-bold mb-1 lh-sm"><a href="<?php echo SITE_URL; ?>/news/<?php echo h($post['slug']); ?>" class="text-dark text-decoration-none"><?php echo h($post['title']); ?></a></h6>
-                            <small class="text-muted"><?php echo number_format($post['views']); ?> views</small>
+                            <small class="text-muted"><?php echo en2bn(number_format($post['views'])); ?> বার পড়া হয়েছে</small>
                         </div>
                     </li>
                     <?php endforeach; ?>
@@ -189,7 +191,7 @@ $externalNews = $pdo->query("
             <?php if (count($externalNews) > 0): ?>
             <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
                 <h4 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-secondary border-2" style="font-size:1rem;">
-                    <i class="bi bi-globe2 me-1"></i> From Other Sources
+                    <i class="bi bi-globe2 me-1"></i> অন্যান্য মাধ্যম থেকে
                 </h4>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($externalNews as $en): ?>
@@ -209,8 +211,8 @@ $externalNews = $pdo->query("
 
             <!-- Ad Placeholder -->
             <div class="bg-secondary bg-opacity-10 rounded-3 text-center p-5 mb-4">
-                <p class="text-muted mb-0">Advertisement</p>
-                <small class="text-muted">300×250</small>
+                <p class="text-muted mb-0">বিজ্ঞাপন</p>
+                <small class="text-muted">৩০০×২৫০</small>
             </div>
         </div>
     </div>

@@ -15,7 +15,7 @@ $post = $stmt->fetch();
 
 if (!$post) {
     header("HTTP/1.0 404 Not Found");
-    echo "News not found.";
+    echo "খবরটি পাওয়া যায়নি।";
     exit;
 }
 
@@ -49,6 +49,12 @@ $pageDesc  = $post['short_description'];
 $pageImage = $post['image'];
 
 require_once __DIR__ . '/includes/header.php';
+
+// Format Bengali date for article
+$bnDays = ['Sunday'=>'রবিবার', 'Monday'=>'সোমবার', 'Tuesday'=>'মঙ্গলবার', 'Wednesday'=>'বুধবার', 'Thursday'=>'বৃহস্পতিবার', 'Friday'=>'শুক্রবার', 'Saturday'=>'শনিবার'];
+$bnMonths = ['January'=>'জানুয়ারি', 'February'=>'ফেব্রুয়ারি', 'March'=>'মার্চ', 'April'=>'এপ্রিল', 'May'=>'মে', 'June'=>'জুন', 'July'=>'জুলাই', 'August'=>'আগস্ট', 'September'=>'সেপ্টেম্বর', 'October'=>'অক্টোবর', 'November'=>'নভেম্বর', 'December'=>'ডিসেম্বর'];
+$pubDate = strtotime($post['created_at']);
+$articleDateBn = en2bn(date('j', $pubDate)) . ' ' . $bnMonths[date('F', $pubDate)] . ' ' . en2bn(date('Y', $pubDate));
 ?>
 
 <!-- Schema.org Article markup -->
@@ -71,9 +77,9 @@ require_once __DIR__ . '/includes/header.php';
             <!-- Breadcrumb -->
             <nav aria-label="breadcrumb">
               <ol class="breadcrumb small">
-                <li class="breadcrumb-item"><a href="<?php echo SITE_URL; ?>" class="text-danger text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="<?php echo SITE_URL; ?>" class="text-danger text-decoration-none">হোম</a></li>
                 <li class="breadcrumb-item"><a href="<?php echo SITE_URL; ?>/category/<?php echo h($post['category_slug']); ?>" class="text-danger text-decoration-none"><?php echo h($post['category_name']); ?></a></li>
-                <li class="breadcrumb-item active">Article</li>
+                <li class="breadcrumb-item active">বিস্তারিত খবর</li>
               </ol>
             </nav>
 
@@ -82,8 +88,8 @@ require_once __DIR__ . '/includes/header.php';
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom text-muted small">
                 <div>
                     <span class="me-3"><i class="bi bi-person-circle me-1"></i> <?php echo h($post['author_name']); ?></span>
-                    <span class="me-3"><i class="bi bi-calendar3 me-1"></i> <?php echo date('F j, Y', strtotime($post['created_at'])); ?></span>
-                    <span><i class="bi bi-eye me-1"></i> <?php echo number_format($post['views']); ?> views</span>
+                    <span class="me-3"><i class="bi bi-calendar3 me-1"></i> <?php echo $articleDateBn; ?></span>
+                    <span><i class="bi bi-eye me-1"></i> <?php echo en2bn(number_format($post['views'])); ?> বার পড়া হয়েছে</span>
                 </div>
                 <div class="mt-2 mt-md-0">
                     <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode(SITE_URL . '/news/' . $post['slug']); ?>" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-facebook"></i></a>
@@ -102,7 +108,7 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- Comments -->
             <div class="mt-5 pt-4 border-top">
-                <h4 class="fw-bold mb-4">Comments (<?php echo count($comments); ?>)</h4>
+                <h4 class="fw-bold mb-4">মতামত (<?php echo en2bn(count($comments)); ?>)</h4>
 
                 <div class="card bg-light border-0 mb-4">
                     <div class="card-body">
@@ -110,13 +116,13 @@ require_once __DIR__ . '/includes/header.php';
                             <input type="hidden" name="csrf_token" value="<?php echo h(generateCsrfToken()); ?>">
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="name" placeholder="Your Name" required>
+                                    <input type="text" class="form-control" name="name" placeholder="আপনার নাম" required>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <textarea class="form-control" name="comment" rows="3" placeholder="Write a comment..." required></textarea>
+                                <textarea class="form-control" name="comment" rows="3" placeholder="মতামত লিখুন..." required></textarea>
                             </div>
-                            <button type="submit" name="submit_comment" class="btn btn-danger">Post Comment</button>
+                            <button type="submit" name="submit_comment" class="btn btn-danger">মতামত প্রকাশ করুন</button>
                         </form>
                     </div>
                 </div>
@@ -136,7 +142,7 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Sidebar -->
         <div class="col-lg-4">
             <div class="bg-white rounded-3 shadow-sm p-4">
-                <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:.9rem;">Related News</h5>
+                <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:.9rem;">সম্পর্কিত খবর</h5>
                 <?php foreach ($relatedPosts as $rp): ?>
                 <div class="mb-3 pb-3 border-bottom">
                     <img src="<?php echo $rp['image'] ? SITE_URL . '/' . $rp['image'] : 'https://via.placeholder.com/300x150/eee/999?text=N'; ?>"

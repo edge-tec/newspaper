@@ -1,117 +1,135 @@
 <?php
-require_once 'includes/header.php';
-require_once 'includes/sidebar.php';
+require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/sidebar.php';
 
-$uid = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'];
 
-$totalArticles = $pdo->prepare("SELECT COUNT(*) FROM posts WHERE author_id = ?"); $totalArticles->execute([$uid]); $totalArticles = $totalArticles->fetchColumn();
-$draftCount    = $pdo->prepare("SELECT COUNT(*) FROM posts WHERE author_id = ? AND status = 'draft'"); $draftCount->execute([$uid]); $draftCount = $draftCount->fetchColumn();
-$pendingCount  = $pdo->prepare("SELECT COUNT(*) FROM posts WHERE author_id = ? AND status = 'pending'"); $pendingCount->execute([$uid]); $pendingCount = $pendingCount->fetchColumn();
-$publishedCount = $pdo->prepare("SELECT COUNT(*) FROM posts WHERE author_id = ? AND status = 'published'"); $publishedCount->execute([$uid]); $publishedCount = $publishedCount->fetchColumn();
-$rejectedCount = $pdo->prepare("SELECT COUNT(*) FROM posts WHERE author_id = ? AND status = 'rejected'"); $rejectedCount->execute([$uid]); $rejectedCount = $rejectedCount->fetchColumn();
-$totalViews    = $pdo->prepare("SELECT COALESCE(SUM(views),0) FROM posts WHERE author_id = ? AND status = 'published'"); $totalViews->execute([$uid]); $totalViews = $totalViews->fetchColumn();
+// Get counts
+$stmt = $pdo->prepare("SELECT status, COUNT(*) as count FROM posts WHERE author_id = ? GROUP BY status");
+$stmt->execute([$userId]);
+$counts = ['published' => 0, 'pending' => 0, 'draft' => 0, 'rejected' => 0];
+$totalPosts = 0;
+while ($row = $stmt->fetch()) {
+    $counts[$row['status']] = $row['count'];
+    $totalPosts += $row['count'];
+}
 
-// Recent articles
-$recentStmt = $pdo->prepare("
-    SELECT p.id, p.title, p.status, p.views, p.created_at, c.name as category_name
-    FROM posts p LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.author_id = ? ORDER BY p.created_at DESC LIMIT 5
+// Get total views for published posts
+$stmt = $pdo->prepare("SELECT SUM(views) FROM posts WHERE author_id = ? AND status = 'published'");
+$stmt->execute([$userId]);
+$totalViews = $stmt->fetchColumn() ?: 0;
+
+// Recent posts
+$stmt = $pdo->prepare("
+    SELECT title, slug, status, created_at, views 
+    FROM posts WHERE author_id = ? 
+    ORDER BY created_at DESC LIMIT 5
 ");
-$recentStmt->execute([$uid]);
-$recentArticles = $recentStmt->fetchAll();
+$stmt->execute([$userId]);
+$recentPosts = $stmt->fetchAll();
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">Welcome, <?php echo h($_SESSION['user_name']); ?>!</h1>
-    <a href="create.php" class="btn btn-danger"><i class="bi bi-pencil-square me-1"></i> Write New Article</a>
-</div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pb-5">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+        <h1 class="h3 fw-bold">আমার ড্যাশবোর্ড</h1>
+        <div>
+            <a href="create.php" class="btn btn-danger"><i class="bi bi-pencil-square"></i> নতুন খবর লিখুন</a>
+        </div>
+    </div>
 
-<!-- Stats Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card border-0 bg-primary text-white shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="fs-3 fw-bold"><?php echo $totalArticles; ?></div>
-                <div class="small">Total</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card border-0 bg-secondary text-white shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="fs-3 fw-bold"><?php echo $draftCount; ?></div>
-                <div class="small">Drafts</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card border-0 bg-warning text-dark shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="fs-3 fw-bold"><?php echo $pendingCount; ?></div>
-                <div class="small">Pending</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card border-0 bg-success text-white shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="fs-3 fw-bold"><?php echo $publishedCount; ?></div>
-                <div class="small">Published</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card border-0 bg-danger text-white shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="fs-3 fw-bold"><?php echo $rejectedCount; ?></div>
-                <div class="small">Rejected</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card border-0 bg-info text-white shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="fs-3 fw-bold"><?php echo number_format($totalViews); ?></div>
-                <div class="small">Total Views</div>
-            </div>
-        </div>
-    </div>
-</div>
+    <?php displayFlash(); ?>
 
-<!-- Recent Articles -->
-<h4 class="mb-3">Recent Articles</h4>
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Views</th>
-                <th>Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (count($recentArticles) === 0): ?>
-                <tr><td colspan="6" class="text-center text-muted py-4">No articles yet. <a href="create.php" class="text-danger">Write your first article!</a></td></tr>
-            <?php endif; ?>
-            <?php foreach ($recentArticles as $art): ?>
-            <tr>
-                <td class="fw-semibold"><?php echo h($art['title']); ?></td>
-                <td><?php echo h($art['category_name']); ?></td>
-                <td><?php echo getStatusBadge($art['status']); ?></td>
-                <td><?php echo number_format($art['views']); ?></td>
-                <td class="text-muted small"><?php echo timeAgo($art['created_at']); ?></td>
-                <td>
-                    <?php if (in_array($art['status'], ['draft', 'rejected'])): ?>
-                        <a href="edit.php?id=<?php echo $art['id']; ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="text-muted fw-normal mb-0">সর্বমোট খবর</h6>
+                        <div class="bg-primary bg-opacity-10 text-primary rounded p-2"><i class="bi bi-journal-text fs-5"></i></div>
+                    </div>
+                    <h3 class="fw-bold mb-0"><?php echo en2bn($totalPosts); ?></h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="text-muted fw-normal mb-0">প্রকাশিত</h6>
+                        <div class="bg-success bg-opacity-10 text-success rounded p-2"><i class="bi bi-check2-circle fs-5"></i></div>
+                    </div>
+                    <h3 class="fw-bold mb-0"><?php echo en2bn($counts['published']); ?></h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="text-muted fw-normal mb-0">অপেক্ষমান</h6>
+                        <div class="bg-warning bg-opacity-10 text-warning rounded p-2"><i class="bi bi-hourglass-split fs-5"></i></div>
+                    </div>
+                    <h3 class="fw-bold mb-0"><?php echo en2bn($counts['pending']); ?></h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="text-muted fw-normal mb-0">মোট পঠিত (Views)</h6>
+                        <div class="bg-info bg-opacity-10 text-info rounded p-2"><i class="bi bi-eye fs-5"></i></div>
+                    </div>
+                    <h3 class="fw-bold mb-0"><?php echo en2bn($totalViews); ?></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Articles -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">সাম্প্রতিক খবর</h5>
+            <a href="articles.php" class="btn btn-sm btn-outline-secondary">সবগুলো দেখুন</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4">শিরোনাম</th>
+                        <th>অবস্থা</th>
+                        <th>পঠিত</th>
+                        <th>তারিখ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (count($recentPosts) > 0): ?>
+                        <?php foreach ($recentPosts as $post): ?>
+                        <tr>
+                            <td class="px-4">
+                                <?php if ($post['status'] == 'published'): ?>
+                                    <a href="<?php echo SITE_URL; ?>/news/<?php echo h($post['slug']); ?>" target="_blank" class="text-dark fw-medium text-decoration-none"><?php echo h($post['title']); ?></a>
+                                <?php else: ?>
+                                    <span class="text-dark fw-medium"><?php echo h($post['title']); ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?php echo getStatusBadge($post['status']); ?></td>
+                            <td><?php echo en2bn($post['views']); ?></td>
+                            <td class="text-muted small"><?php echo timeAgo($post['created_at']); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">আপনি এখনও কোনো খবর লেখেননি।</td>
+                        </tr>
                     <?php endif; ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

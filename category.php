@@ -8,7 +8,7 @@ if (!$slug) redirect('/');
 $stmt = $pdo->prepare("SELECT id, name FROM categories WHERE slug = ? AND status = 'active'");
 $stmt->execute([$slug]);
 $category = $stmt->fetch();
-if (!$category) { header("HTTP/1.0 404 Not Found"); echo "Category not found."; exit; }
+if (!$category) { header("HTTP/1.0 404 Not Found"); echo "ক্যাটাগরি পাওয়া যায়নি।"; exit; }
 
 $pageTitle = $category['name'];
 
@@ -57,15 +57,15 @@ require_once __DIR__ . '/includes/header.php';
                 <!-- Pagination -->
                 <?php if ($totalPages > 1): ?>
                 <nav><ul class="pagination justify-content-center">
-                    <li class="page-item <?php echo $page<=1?'disabled':''; ?>"><a class="page-link" href="?slug=<?php echo h($slug); ?>&page=<?php echo $page-1; ?>">Prev</a></li>
+                    <li class="page-item <?php echo $page<=1?'disabled':''; ?>"><a class="page-link" href="?slug=<?php echo h($slug); ?>&page=<?php echo $page-1; ?>">পূর্ববর্তী</a></li>
                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <li class="page-item <?php echo $page==$i?'active':''; ?>"><a class="page-link" href="?slug=<?php echo h($slug); ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                    <li class="page-item <?php echo $page==$i?'active':''; ?>"><a class="page-link" href="?slug=<?php echo h($slug); ?>&page=<?php echo $i; ?>"><?php echo en2bn($i); ?></a></li>
                     <?php endfor; ?>
-                    <li class="page-item <?php echo $page>=$totalPages?'disabled':''; ?>"><a class="page-link" href="?slug=<?php echo h($slug); ?>&page=<?php echo $page+1; ?>">Next</a></li>
+                    <li class="page-item <?php echo $page>=$totalPages?'disabled':''; ?>"><a class="page-link" href="?slug=<?php echo h($slug); ?>&page=<?php echo $page+1; ?>">পরবর্তী</a></li>
                 </ul></nav>
                 <?php endif; ?>
             <?php else: ?>
-                <p class="text-muted">No internal news found in this category yet.</p>
+                <p class="text-muted">এই ক্যাটাগরিতে এখনও কোনো খবর প্রকাশিত হয়নি।</p>
             <?php endif; ?>
         </div>
 
@@ -75,7 +75,7 @@ require_once __DIR__ . '/includes/header.php';
             <?php if (count($externalPosts) > 0): ?>
             <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
                 <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-secondary border-2" style="font-size:.9rem;">
-                    <i class="bi bi-globe2 me-1"></i> External Headlines
+                    <i class="bi bi-globe2 me-1"></i> অন্যান্য মাধ্যম থেকে
                 </h5>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($externalPosts as $ep): ?>
@@ -90,7 +90,7 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- More Categories -->
             <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
-                <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:.9rem;">More Categories</h5>
+                <h5 class="fw-bold text-uppercase pb-2 mb-3 border-bottom border-danger border-2" style="font-size:.9rem;">আরও ক্যাটাগরি</h5>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($navCategories as $cat): ?>
                     <li class="mb-2"><a href="<?php echo SITE_URL; ?>/category/<?php echo h($cat['slug']); ?>" class="text-dark text-decoration-none fw-semibold"><i class="bi bi-chevron-right text-danger small"></i> <?php echo h($cat['name']); ?></a></li>
