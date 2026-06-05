@@ -1,0 +1,12 @@
+# Uploads
+assets/uploads/*
+!assets/uploads/.gitkeep
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

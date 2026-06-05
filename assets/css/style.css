@@ -1,0 +1,107 @@
+/* ═══════════════════════════════════════
+   Modern News — Custom Stylesheet
+   ═══════════════════════════════════════ */
+
+/* ── Global ────────────────────────── */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f5f7;
+    color: #222;
+    font-size: 15px;
+}
+
+/* ── Typography ────────────────────── */
+h1, h2, h3, h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+}
+
+a { color: #dc3545; transition: color .15s; }
+a:hover { color: #a71d2a; }
+a.text-dark:hover { color: #dc3545 !important; }
+a.text-white:hover { opacity: .85; }
+
+/* ── Sticky Header ─────────────────── */
+header.sticky-top {
+    z-index: 1030;
+}
+
+/* ── Breaking News ─────────────────── */
+.bg-danger marquee a { letter-spacing: .3px; }
+
+/* ── Hero ──────────────────────────── */
+.position-relative img {
+    transition: transform .6s ease;
+}
+.position-relative:hover img {
+    transform: scale(1.03);
+}
+
+/* ── Cards & Hover ─────────────────── */
+.card {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,.08);
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 4px rgba(0,0,0,.06) !important;
+}
+
+/* ── Section Headings ──────────────── */
+.border-danger.border-2 {
+    border-width: 3px !important;
+}
+
+/* ── External Source Badge ─────────── */
+.badge.bg-light.border {
+    font-size: .7rem;
+    font-weight: 500;
+}
+
+/* ── Article Content ───────────────── */
+.article-content {
+    font-size: 1.1rem;
+    line-height: 1.9;
+}
+.article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* ── Pagination ────────────────────── */
+.pagination .page-link { color: #dc3545; }
+.pagination .page-item.active .page-link {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* ── Sidebar ───────────────────────── */
+.sidebar { position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; padding: 56px 0 0; box-shadow: inset -1px 0 0 rgba(0,0,0,.1); }
+.sidebar-sticky { position: relative; top: 0; height: calc(100vh - 56px); padding-top: .5rem; overflow-x: hidden; overflow-y: auto; }
+.sidebar .nav-link { font-weight: 500; color: #333; padding: .5rem 1rem; }
+.sidebar .nav-link .bi { margin-right: 6px; color: #999; }
+.sidebar .nav-link.active, .sidebar .nav-link:hover { color: #dc3545; }
+.sidebar .nav-link.active .bi, .sidebar .nav-link:hover .bi { color: #dc3545; }
+
+/* ── Reporter Dashboard Cards ──────── */
+.card .fs-3 { font-weight: 700; }
+
+/* ── Responsive ────────────────────── */
+@media (max-width: 768px) {
+    .position-relative { height: 280px !important; }
+    h1.fw-bold { font-size: 1.4rem; }
+    .article-content { font-size: 1rem; line-height: 1.7; }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand { font-size: .85rem !important; }
+    .container { padding-left: 12px; padding-right: 12px; }
+}
+
+/* ── Lazy Loading Placeholder ──────── */
+img[loading="lazy"] {
+    background: #eee;
+}
