@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# SEO-friendly URLs for internal news articles
+RewriteRule ^news/([a-zA-Z0-9-]+)/?$ news.php?slug=$1 [L,QSA]
+
+# SEO-friendly URLs for categories
+RewriteRule ^category/([a-zA-Z0-9-]+)/?$ category.php?slug=$1 [L,QSA]
+
+# SEO-friendly URLs for external news
+RewriteRule ^external/([0-9]+)/?$ external-news.php?id=$1 [L,QSA]
