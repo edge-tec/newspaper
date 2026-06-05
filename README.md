@@ -34,7 +34,7 @@ A production-ready PHP newspaper CMS with reporter workflow, RSS news aggregatio
 
 ### 2. Clone Repository
 ```bash
-cd /www/wwwroot/your-domain.com
+cd /www/wwwroot/extract.mailszo.com
 git clone https://github.com/edge-tec/newspaper.git .
 ```
 
@@ -46,7 +46,7 @@ git clone https://github.com/edge-tec/newspaper.git .
 ### 4. Configure
 Edit `config/config.php`:
 ```php
-define('SITE_URL', 'https://your-domain.com');
+define('SITE_URL', 'https://extract.mailszo.com');
 define('DB_HOST', 'localhost');
 define('DB_USER', 'your_db_user');
 define('DB_PASS', 'your_db_password');
@@ -55,7 +55,7 @@ define('DB_NAME', 'newspaper_db');
 
 ### 5. Set Permissions
 ```bash
-chmod -R 755 /www/wwwroot/your-domain.com
+chmod -R 755 /www/wwwroot/extract.mailszo.com
 chmod -R 777 assets/uploads
 ```
 
@@ -92,7 +92,7 @@ location ~ ^/external/([0-9]+)/?$ {
 ### 7. Set Up RSS Cron Job
 In aaPanel → **Cron**, add a Shell Script task:
 ```bash
-/usr/bin/php /www/wwwroot/your-domain.com/cron/fetch_rss.php >> /www/wwwlogs/rss-fetch.log 2>&1
+/usr/bin/php /www/wwwroot/extract.mailszo.com/cron/fetch_rss.php >> /www/wwwlogs/rss-fetch.log 2>&1
 ```
 Set it to run **every 30 minutes**.
 
