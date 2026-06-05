@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4 mb-3">
-                <h4 class="fw-bold mb-3" style="font-family:'Playfair Display',serif;"><span class="text-danger">M</span>odern<span class="text-danger">N</span>ews</h4>
+                <h4 class="fw-bold mb-3" style="font-family:'Noto Serif Bengali',serif;">মডার্ন <span class="text-danger">নিউজ</span></h4>
                 <p class="text-white-50 small"><?php echo SITE_DESC; ?> আমরা আপনাকে দিচ্ছি দেশে এবং দেশের বাইরের সর্বশেষ ও বিশ্বাসযোগ্য খবর। আমাদের নিজস্ব রিপোর্টারদের পাশাপাশি অন্যান্য নির্ভরযোগ্য মাধ্যম থেকে খবর সংগ্রহ করা হয়।</p>
                 <div class="d-flex gap-3 mt-3">
                     <a href="#" class="text-white-50 fs-5"><i class="bi bi-facebook"></i></a>

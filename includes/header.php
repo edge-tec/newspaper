@@ -65,9 +65,7 @@ $todayBn = $bnDays[date('l')] . ', ' . en2bn(date('j')) . ' ' . $bnMonths[date('
     <div class="container py-3">
         <div class="row align-items-center">
             <div class="col-8 col-md-4">
-                <a class="text-dark text-decoration-none" href="<?php echo SITE_URL; ?>">
-                    <span class="fs-2 fw-bold" style="font-family:'Playfair Display',serif;"><span class="text-danger">M</span>odern<span class="text-danger">N</span>ews</span>
-                </a>
+                <a class="navbar-brand fs-3 fw-bold" style="font-family:'Noto Serif Bengali',serif;" href="<?php echo SITE_URL; ?>">মডার্ন <span class="text-danger">নিউজ</span></a>
             </div>
             <div class="col-4 col-md-8 d-flex justify-content-end align-items-center">
                 <a class="link-secondary" href="#" data-bs-toggle="modal" data-bs-target="#searchModal" aria-label="Search">
