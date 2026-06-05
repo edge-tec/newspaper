@@ -101,7 +101,11 @@ foreach ($feeds as $feed) {
 
                 // Replace original newspaper name with our site name
                 $title = str_ireplace($feed['source_name'], SITE_NAME, $title);
-                $excerpt = strip_tags($description);
+                
+                // Preserve paragraph spacing
+                $descWithNewlines = str_ireplace(['</p>', '<br>', '<br/>', '<br />', '</div>'], "\n", $description);
+                $excerpt = strip_tags($descWithNewlines);
+                $excerpt = preg_replace("/\n\s*\n+/", "\n\n", trim($excerpt));
                 $excerpt = str_ireplace($feed['source_name'], SITE_NAME, $excerpt);
 
                 $items[] = [
@@ -132,7 +136,11 @@ foreach ($feeds as $feed) {
 
                 // Replace original newspaper name with our site name
                 $title = str_ireplace($feed['source_name'], SITE_NAME, $title);
-                $excerpt = strip_tags($description);
+
+                // Preserve paragraph spacing
+                $descWithNewlines = str_ireplace(['</p>', '<br>', '<br/>', '<br />', '</div>'], "\n", $description);
+                $excerpt = strip_tags($descWithNewlines);
+                $excerpt = preg_replace("/\n\s*\n+/", "\n\n", trim($excerpt));
                 $excerpt = str_ireplace($feed['source_name'], SITE_NAME, $excerpt);
 
                 $items[] = [
@@ -157,8 +165,8 @@ foreach ($feeds as $feed) {
         foreach ($items as $item) {
             if (empty($item['title']) || empty($item['link'])) continue;
 
-            // Truncate excerpt to 500 chars
-            $excerpt = mb_substr($item['excerpt'], 0, 500);
+            // No longer truncating to 500 chars to show full news
+            $excerpt = $item['excerpt'];
 
             // Parse date
             $pubDate = null;

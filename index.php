@@ -139,7 +139,7 @@ $externalNews = $pdo->query("
                                     <h6 class="fw-bold mb-1 lh-sm">
                                         <a href="<?php echo SITE_URL; ?>/external-news.php?id=<?php echo $ep['id']; ?>" class="text-dark text-decoration-none"><?php echo h($ep['title']); ?></a>
                                     </h6>
-                                    <small class="text-muted"><span class="badge bg-secondary bg-opacity-25 text-dark me-1"><i class="bi bi-link-45deg"></i> <?php echo h($ep['source_name']); ?></span></small>
+                                    <small class="text-muted"><span class="badge bg-secondary bg-opacity-25 text-dark me-1"><i class="bi bi-link-45deg"></i> খবর</span></small>
                                 </div>
                             </li>
                             <?php endforeach; ?>
@@ -200,7 +200,7 @@ $externalNews = $pdo->query("
                             <a href="<?php echo SITE_URL; ?>/external-news.php?id=<?php echo $en['id']; ?>" class="text-dark text-decoration-none"><?php echo h($en['title']); ?></a>
                         </h6>
                         <small class="text-muted">
-                            <span class="badge bg-light text-dark border"><i class="bi bi-link-45deg"></i> <?php echo h($en['source_name']); ?></span>
+                            <span class="badge bg-light text-dark border"><i class="bi bi-link-45deg"></i> খবর</span>
                             · <?php echo $en['published_at'] ? timeAgo($en['published_at']) : ''; ?>
                         </small>
                     </li>

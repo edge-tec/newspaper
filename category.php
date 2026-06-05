@@ -81,7 +81,7 @@ require_once __DIR__ . '/includes/header.php';
                     <?php foreach ($externalPosts as $ep): ?>
                     <li class="mb-3 pb-3 border-bottom">
                         <h6 class="fw-bold lh-sm mb-1"><a href="<?php echo SITE_URL; ?>/external-news.php?id=<?php echo $ep['id']; ?>" class="text-dark text-decoration-none"><?php echo h($ep['title']); ?></a></h6>
-                        <small class="text-muted"><span class="badge bg-light text-dark border"><?php echo h($ep['source_name']); ?></span></small>
+                        <small class="text-muted"><span class="badge bg-light text-dark border">খবর</span></small>
                     </li>
                     <?php endforeach; ?>
                 </ul>

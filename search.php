@@ -95,7 +95,7 @@ require_once __DIR__ . '/includes/header.php';
                     <?php foreach ($externalResults as $er): ?>
                     <li class="mb-3 pb-3 border-bottom">
                         <h6 class="fw-bold lh-sm mb-1"><a href="<?php echo SITE_URL; ?>/external-news.php?id=<?php echo $er['id']; ?>" class="text-dark text-decoration-none"><?php echo h($er['title']); ?></a></h6>
-                        <small class="text-muted"><span class="badge bg-light text-dark border"><?php echo h($er['source_name']); ?></span></small>
+                        <small class="text-muted"><span class="badge bg-light text-dark border">খবর</span></small>
                     </li>
                     <?php endforeach; ?>
                 </ul>

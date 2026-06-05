@@ -41,23 +41,15 @@ $articleDateBn = en2bn(date('j', $pubDate)) . ' ' . $bnMonths[date('F', $pubDate
                 <?php if ($article['category_name']): ?>
                 <li class="breadcrumb-item text-muted"><?php echo h($article['category_name']); ?></li>
                 <?php endif; ?>
-                <li class="breadcrumb-item active">বাহ্যিক উৎস</li>
+                <li class="breadcrumb-item active">বিস্তারিত খবর</li>
               </ol>
             </nav>
 
-            <!-- External Source Badge -->
-            <div class="alert alert-light border d-flex align-items-center mb-4">
-                <i class="bi bi-globe2 text-secondary fs-4 me-3"></i>
-                <div>
-                    <strong>উৎস:</strong> <?php echo h($article['source_name']); ?>
-                    <br><small class="text-muted">এই খবরটি অন্য একটি ওয়েবসাইট থেকে সংগ্রহ করা হয়েছে। নিচে শুধুমাত্র খবরের সারসংক্ষেপ দেওয়া হলো।</small>
-                </div>
-            </div>
+            <!-- External Source Badge Removed -->
 
             <h1 class="fw-bold mb-3" style="font-family:'Playfair Display',serif;"><?php echo h($article['title']); ?></h1>
 
             <div class="text-muted mb-4">
-                <span class="me-3"><i class="bi bi-newspaper me-1"></i> <?php echo h($article['source_name']); ?></span>
                 <?php if ($article['published_at']): ?>
                 <span><i class="bi bi-calendar3 me-1"></i> <?php echo str_replace(['am', 'pm'], ['এএম', 'পিএম'], $articleDateBn); ?></span>
                 <?php endif; ?>
@@ -67,18 +59,12 @@ $articleDateBn = en2bn(date('j', $pubDate)) . ' ' . $bnMonths[date('F', $pubDate
                 <img src="<?php echo h($article['image']); ?>" class="img-fluid w-100 rounded mb-4" alt="<?php echo h($article['title']); ?>" loading="lazy">
             <?php endif; ?>
 
-            <!-- Excerpt Only -->
+            <!-- Full Article -->
             <div class="fs-5 mb-4" style="line-height:1.8;">
                 <?php echo nl2br(h($article['excerpt'])); ?>
             </div>
 
-            <!-- Read Full Article Button -->
-            <div class="bg-light rounded-3 p-4 text-center mb-4">
-                <p class="mb-3 text-muted">খবরটির বিস্তারিত পড়তে মূল ওয়েবসাইটে যান:</p>
-                <a href="<?php echo h($article['original_url']); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-danger btn-lg">
-                    <i class="bi bi-box-arrow-up-right me-2"></i> <?php echo h($article['source_name']); ?> এ বিস্তারিত পড়ুন
-                </a>
-            </div>
+            <!-- Read Full Article Button Removed -->
 
             <!-- Share -->
             <div class="d-flex gap-2 mb-4">
@@ -90,7 +76,7 @@ $articleDateBn = en2bn(date('j', $pubDate)) . ' ' . $bnMonths[date('F', $pubDate
         <!-- Sidebar -->
         <div class="col-lg-4">
             <div class="bg-white rounded-3 shadow-sm p-4">
-                <h5 class="fw-bold mb-3 border-bottom border-danger border-2 pb-2 text-uppercase" style="font-size:.9rem;"><?php echo h($article['source_name']); ?> থেকে আরও খবর</h5>
+                <h5 class="fw-bold mb-3 border-bottom border-danger border-2 pb-2 text-uppercase" style="font-size:.9rem;">আরও খবর</h5>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($relatedArticles as $ra): ?>
                     <li class="mb-3 pb-3 border-bottom">
