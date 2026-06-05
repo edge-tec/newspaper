@@ -87,6 +87,17 @@ foreach ($feeds as $feed) {
                         $image = (string) $item->enclosure->attributes()->url;
                     }
                 }
+                
+                // Fallback: Extract image from description or content:encoded
+                if (!$image) {
+                    $contentNs = $item->children('http://purl.org/rss/1.0/modules/content/');
+                    $contentEncoded = isset($contentNs->encoded) ? (string)$contentNs->encoded : '';
+                    $searchContent = $contentEncoded ? $contentEncoded : $description;
+                    
+                    if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $searchContent, $matches)) {
+                        $image = $matches[1];
+                    }
+                }
 
                 $items[] = [
                     'title'   => $title,
@@ -108,11 +119,17 @@ foreach ($feeds as $feed) {
                 }
                 $description = (string) ($entry->summary ?? $entry->content ?? '');
                 $pubDate     = (string) ($entry->published ?? $entry->updated ?? '');
+                
+                $image = null;
+                if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $description, $matches)) {
+                    $image = $matches[1];
+                }
+
                 $items[] = [
                     'title'   => $title,
                     'link'    => $link,
                     'excerpt' => strip_tags($description),
-                    'image'   => null,
+                    'image'   => $image,
                     'pubDate' => $pubDate,
                 ];
             }
