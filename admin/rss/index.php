@@ -20,6 +20,15 @@ $sources = $stmt->fetchAll();
     <?php if (isset($_SESSION['success'])) { echo "<div class='alert alert-success'>".h($_SESSION['success'])."</div>"; unset($_SESSION['success']); } ?>
     <?php if (isset($_SESSION['error'])) { echo "<div class='alert alert-danger'>".h($_SESSION['error'])."</div>"; unset($_SESSION['error']); } ?>
 
+    <div class="alert alert-info shadow-sm d-flex align-items-center mb-4">
+        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+        <div>
+            <h6 class="alert-heading fw-bold mb-1">অটোমেটিক খবর আনার জন্য Cron Job URL:</h6>
+            <code class="fs-6 bg-light text-dark px-2 py-1 rounded border"><?php echo SITE_URL; ?>/cron/fetch_rss.php</code>
+            <p class="mb-0 mt-1 small text-muted">আপনার সার্ভারের Cron Job সেটিংসে এই লিংকটি প্রতি ৩০ মিনিট বা ১ ঘণ্টা পরপর রান করার জন্য সেট করে দিন।</p>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
