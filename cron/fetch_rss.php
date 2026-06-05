@@ -88,13 +88,15 @@ foreach ($feeds as $feed) {
                     }
                 }
                 
+                // Extract full content from content:encoded if available
+                $contentNs = $item->children('http://purl.org/rss/1.0/modules/content/');
+                $contentEncoded = isset($contentNs->encoded) ? (string)$contentNs->encoded : '';
+                
+                $fullContent = !empty($contentEncoded) ? $contentEncoded : $description;
+
                 // Fallback: Extract image from description or content:encoded
                 if (!$image) {
-                    $contentNs = $item->children('http://purl.org/rss/1.0/modules/content/');
-                    $contentEncoded = isset($contentNs->encoded) ? (string)$contentNs->encoded : '';
-                    $searchContent = $contentEncoded ? $contentEncoded : $description;
-                    
-                    if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $searchContent, $matches)) {
+                    if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $fullContent, $matches)) {
                         $image = $matches[1];
                     }
                 }
@@ -103,7 +105,7 @@ foreach ($feeds as $feed) {
                 $title = str_ireplace($feed['source_name'], SITE_NAME, $title);
                 
                 // Preserve paragraph spacing
-                $descWithNewlines = str_ireplace(['</p>', '<br>', '<br/>', '<br />', '</div>'], "\n", $description);
+                $descWithNewlines = str_ireplace(['</p>', '<br>', '<br/>', '<br />', '</div>'], "\n", $fullContent);
                 $excerpt = strip_tags($descWithNewlines);
                 $excerpt = preg_replace("/\n\s*\n+/", "\n\n", trim($excerpt));
                 $excerpt = str_ireplace($feed['source_name'], SITE_NAME, $excerpt);
