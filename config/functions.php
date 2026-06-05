@@ -112,8 +112,18 @@ function timeAgo($datetime, $full = false) {
     $ago = new DateTime($datetime);
     $diff = $now->diff($ago);
 
-    $diff->w = floor($diff->d / 7);
-    $diff->d -= $diff->w * 7;
+    $w = floor($diff->d / 7);
+    $d = $diff->d - ($w * 7);
+
+    $parts = [
+        'y' => $diff->y,
+        'm' => $diff->m,
+        'w' => $w,
+        'd' => $d,
+        'h' => $diff->h,
+        'i' => $diff->i,
+        's' => $diff->s,
+    ];
 
     $string = array(
         'y' => 'বছর',
@@ -125,8 +135,8 @@ function timeAgo($datetime, $full = false) {
         's' => 'সেকেন্ড',
     );
     foreach ($string as $k => &$v) {
-        if ($diff->$k) {
-            $v = en2bn($diff->$k) . ' ' . $v;
+        if ($parts[$k]) {
+            $v = en2bn($parts[$k]) . ' ' . $v;
         } else {
             unset($string[$k]);
         }
