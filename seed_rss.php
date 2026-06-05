@@ -11,10 +11,16 @@ $feeds = [
     ['Prothom Alo English', 'https://en.prothomalo.com/feed']
 ];
 
+// Clear previous RSS feeds and aggregated news
+$pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+$pdo->exec("TRUNCATE TABLE aggregated_news");
+$pdo->exec("TRUNCATE TABLE rss_feeds");
+$pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+
 $stmt = $pdo->prepare("INSERT INTO rss_feeds (source_name, feed_url, category_id, status) VALUES (?, ?, 1, 'active')");
 
 echo "<!DOCTYPE html><html lang='bn'><head><meta charset='UTF-8'><title>RSS Seed</title></head><body>";
-echo "<h2>Adding Bangladeshi RSS Feeds to Database</h2><ul>";
+echo "<h2>Database Cleared! Added New Bangladeshi RSS Feeds</h2><ul>";
 
 $addedCount = 0;
 foreach ($feeds as $feed) {
