@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/sidebar.php';
 
 requireAdmin();
 
-$stmt = $pdo->query("SELECT r.*, c.name as category_name FROM rss_sources r LEFT JOIN categories c ON r.category_id = c.id ORDER BY r.source_name ASC");
+$stmt = $pdo->query("SELECT r.*, c.name as category_name FROM rss_feeds r LEFT JOIN categories c ON r.category_id = c.id ORDER BY r.source_name ASC");
 $sources = $stmt->fetchAll();
 ?>
 

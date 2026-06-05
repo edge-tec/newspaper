@@ -7,7 +7,7 @@ requireAdmin();
 $id = $_GET['id'] ?? null;
 if (!$id) redirect('/admin/rss/index.php');
 
-$stmt = $pdo->prepare("SELECT * FROM rss_sources WHERE id = ?");
+$stmt = $pdo->prepare("SELECT * FROM rss_feeds WHERE id = ?");
 $stmt->execute([$id]);
 $source = $stmt->fetch();
 
@@ -27,12 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($source_name) || empty($feed_url) || empty($category_id)) {
             setFlash('সবগুলো ঘর পূরণ করা আবশ্যক।', 'danger');
         } else {
-            $stmt = $pdo->prepare("SELECT id FROM rss_sources WHERE feed_url = ? AND id != ?");
+            $stmt = $pdo->prepare("SELECT id FROM rss_feeds WHERE feed_url = ? AND id != ?");
             $stmt->execute([$feed_url, $id]);
             if ($stmt->fetch()) {
                 setFlash('এই RSS ফিড ইউআরএল অন্য একটি উৎসে ব্যবহৃত হচ্ছে।', 'danger');
             } else {
-                $stmt = $pdo->prepare("UPDATE rss_sources SET source_name = ?, feed_url = ?, category_id = ?, status = ? WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE rss_feeds SET source_name = ?, feed_url = ?, category_id = ?, status = ? WHERE id = ?");
                 if ($stmt->execute([$source_name, $feed_url, $category_id, $status, $id])) {
                     setFlash('RSS উৎস সফলভাবে আপডেট হয়েছে।', 'success');
                     redirect('/admin/rss/index.php');

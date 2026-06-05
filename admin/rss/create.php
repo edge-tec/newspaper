@@ -19,12 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setFlash('সবগুলো ঘর পূরণ করা আবশ্যক।', 'danger');
         } else {
             // Check if feed URL already exists
-            $stmt = $pdo->prepare("SELECT id FROM rss_sources WHERE feed_url = ?");
+            $stmt = $pdo->prepare("SELECT id FROM rss_feeds WHERE feed_url = ?");
             $stmt->execute([$feed_url]);
             if ($stmt->fetch()) {
                 setFlash('এই RSS ফিড ইউআরএল ইতিমধ্যে যুক্ত করা হয়েছে।', 'danger');
             } else {
-                $stmt = $pdo->prepare("INSERT INTO rss_sources (source_name, feed_url, category_id, status) VALUES (?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO rss_feeds (source_name, feed_url, category_id, status) VALUES (?, ?, ?, ?)");
                 if ($stmt->execute([$source_name, $feed_url, $category_id, $status])) {
                     setFlash('RSS উৎস সফলভাবে যুক্ত হয়েছে।', 'success');
                     redirect('/admin/rss/index.php');

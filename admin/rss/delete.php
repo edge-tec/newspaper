@@ -6,7 +6,7 @@ requireAdmin();
 
 $id = $_GET['id'] ?? null;
 if ($id) {
-    $stmt = $pdo->prepare("DELETE FROM rss_sources WHERE id = ?");
+    $stmt = $pdo->prepare("DELETE FROM rss_feeds WHERE id = ?");
     if ($stmt->execute([$id])) {
         setFlash('RSS উৎস সফলভাবে ডিলিট হয়েছে।', 'success');
     } else {

@@ -11,7 +11,7 @@ $stats = [
     'categories' => $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn(),
     'posts_published' => $pdo->query("SELECT COUNT(*) FROM posts WHERE status = 'published'")->fetchColumn(),
     'posts_pending' => $pdo->query("SELECT COUNT(*) FROM posts WHERE status = 'pending'")->fetchColumn(),
-    'rss_sources' => $pdo->query("SELECT COUNT(*) FROM rss_sources")->fetchColumn(),
+    'rss_sources' => $pdo->query("SELECT COUNT(*) FROM rss_feeds")->fetchColumn(),
     'rss_news' => $pdo->query("SELECT COUNT(*) FROM aggregated_news")->fetchColumn(),
 ];
 
